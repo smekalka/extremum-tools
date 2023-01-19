@@ -119,6 +119,8 @@ project(":extremum-test-tools") {
     dependencies {
         implementation(project(":extremum-model-tools"))
         implementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+        implementation("org.assertj:assertj-core:3.8.0")
+        implementation("de.cronn:reflection-util:2.14.0")
     }
 
     publishing {
