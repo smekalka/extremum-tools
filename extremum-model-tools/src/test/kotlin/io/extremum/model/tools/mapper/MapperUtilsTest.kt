@@ -1,10 +1,12 @@
 package io.extremum.model.tools.mapper
 
-import io.extremum.test.tools.StringUtils.assertEqual
-import io.extremum.test.tools.StringUtils.toDescriptor
-import io.extremum.test.tools.ToJsonFormatter.toJson
 import io.extremum.model.tools.mapper.GraphQlListUtils.toGraphQlList
 import io.extremum.model.tools.mapper.GraphQlListUtils.toList
+import io.extremum.model.tools.mapper.MapperUtils.convertToMap
+import io.extremum.model.tools.mapper.MapperUtils.convertValue
+import io.extremum.model.tools.mapper.MapperUtils.mapToObject
+import io.extremum.model.tools.mapper.MapperUtils.readValue
+import io.extremum.model.tools.mapper.MapperUtils.toStringOrMultilingual
 import io.extremum.model.tools.mapper.model.Account
 import io.extremum.model.tools.mapper.model.Change
 import io.extremum.model.tools.mapper.model.Compensation
@@ -12,20 +14,17 @@ import io.extremum.model.tools.mapper.model.CompensationWithChange
 import io.extremum.model.tools.mapper.model.Event
 import io.extremum.model.tools.mapper.model.Experience
 import io.extremum.model.tools.mapper.model.Timepoint
-import io.extremum.model.tools.mapper.MapperUtils.convertValue
-import io.extremum.model.tools.mapper.MapperUtils.mapToObject
-import io.extremum.model.tools.mapper.MapperUtils.readValue
-import io.extremum.model.tools.mapper.MapperUtils.toStringOrMultilingual
 import io.extremum.sharedmodels.basic.MultilingualLanguage
 import io.extremum.sharedmodels.basic.StringOrMultilingual
 import io.extremum.sharedmodels.basic.StringOrObject
+import io.extremum.test.tools.StringUtils.assertEqual
+import io.extremum.test.tools.StringUtils.toDescriptor
+import io.extremum.test.tools.ToJsonFormatter.toJson
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertTrue
 
 class MapperUtilsTest {
 
@@ -343,5 +342,26 @@ class MapperUtilsTest {
         assertThrows<IllegalStateException> {
             StringOrObject(2).toStringOrMultilingual()
         }
+    }
+
+    @Test
+    fun convertToMap() {
+        data class Clazz(
+            val a: String,
+            val b: Int
+        )
+        val result = Clazz(a = "1", b = 2).convertToMap()
+        assertEquals(mapOf("a" to "1", "b" to 2), result)
+    }
+    @Test
+    fun `convertToMap for map (int to Any)`() {
+        val result = mapOf(1 to "a", 2 to 3).convertToMap()
+        assertEquals(mapOf("1" to "a", "2" to 3), result)
+    }
+
+    @Test
+    fun `convertToMap for map (string to string)`() {
+        val result = mapOf("1" to "a", "2" to "b").convertToMap()
+        assertEquals(mapOf("1" to "a", "2" to "b"), result)
     }
 }
