@@ -38,6 +38,9 @@ object MapperUtils {
      */
     fun Any.convertToMap(filterFields: List<String> = listOf()): Map<String, Any?> {
         val clazz = this::class.java
+        if (this is Map<*, *>) {
+            return this.map { (key, value) -> key.toString() to value }.toMap()
+        }
         return convertToMap(clazz, this).let {
             if (filterFields.isEmpty()) {
                 it

@@ -4,14 +4,13 @@ import de.cronn.reflection.util.PropertyUtils
 import de.cronn.reflection.util.TypedPropertyGetter
 import io.extremum.sharedmodels.basic.BasicModel
 import io.extremum.sharedmodels.descriptor.Descriptor
-import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.ObjectAssert
+import org.junit.jupiter.api.Assertions.assertEquals
 
 object AssertionUtils {
 
     fun assertEqualsDescriptors(exp: Descriptor, actual: Descriptor) {
-        assertThat(actual.externalId).isEqualTo(exp.externalId)
-            .withFailMessage("exp: $exp\nact: $actual")
+        assertEquals(exp.externalId, actual.externalId)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -25,7 +24,6 @@ object AssertionUtils {
         this.hasFieldOrPropertyWithValue(PropertyUtils.getPropertyName(T::class.java, nameGetter), value)
 
     fun assertEqualsByUuid(exp: BasicModel<*>, actual: BasicModel<*>) {
-        assertThat(actual.uuid.externalId).isEqualTo(exp.uuid.externalId)
-            .withFailMessage("exp: $exp\nact: $actual")
+        assertEquals(actual.uuid.externalId, exp.uuid.externalId)
     }
 }
