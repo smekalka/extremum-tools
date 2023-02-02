@@ -6,7 +6,7 @@ plugins {
     id("maven-publish")
 }
 
-val artifactVersion = "0.0.3"
+val artifactVersion = "0.0.4"
 val artifact = "extremum-model-tools"
 val extremumGroup = "io.extremum"
 val releasesRepoUrl = "https://artifactory.extremum.monster/artifactory/extremum-releases/"

@@ -11,6 +11,7 @@ import io.extremum.sharedmodels.basic.StringOrMultilingual
 import io.extremum.sharedmodels.basic.StringOrObject
 import org.apache.commons.lang3.SerializationUtils
 import java.io.Serializable
+import java.lang.reflect.ParameterizedType
 import java.util.logging.Logger
 import kotlin.reflect.full.isSubclassOf
 
@@ -36,7 +37,7 @@ object MapperUtils {
      */
     fun Any.convertValue(to: Class<*>): Any =
         when {
-            this::class.isSubclassOf(to.kotlin) -> this
+            this::class.java.genericSuperclass !is ParameterizedType && this::class.isSubclassOf(to.kotlin) -> this
             this is String -> mapper.readValue(this, to)
             else -> mapper.convertValue(this, to)
         }
@@ -57,7 +58,7 @@ object MapperUtils {
      */
     inline fun <reified T> Any.convertValue(): T =
         when {
-            this::class.isSubclassOf(T::class) -> this as T
+            this::class.java.genericSuperclass !is ParameterizedType && this::class.isSubclassOf(T::class) -> this as T
             this is String -> mapper.readValue(this, T::class.java)
             else -> mapper.convertValue(this, T::class.java) as T
         }

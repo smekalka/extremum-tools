@@ -1,11 +1,13 @@
 package io.extremum.model.tools.mapper
 
 import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.module.kotlin.MissingKotlinParameterException
 import io.extremum.model.tools.mapper.MapperUtils.convertToMap
 import io.extremum.model.tools.mapper.MapperUtils.convertValue
 import io.extremum.model.tools.mapper.MapperUtils.convertValueSafe
+import io.extremum.model.tools.mapper.MapperUtils.readValue
 import io.extremum.model.tools.mapper.model.Account
 import io.extremum.test.tools.ToJsonFormatter.toJson
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,6 +27,15 @@ class MapperUtilsConvertValueTest {
 
         val genericResult = linkedHashMap.convertValue<Map<String, Int>>()
         assertEquals(linkedHashMap, genericResult)
+    }
+
+    @Test
+    fun `map to map with other type`() {
+        val jsonNode = "{\"add\":[\"val6\"], \"remove\":[\"val1\",\"val2\"]}".readValue<JsonNode>()
+        val mapWithArrayNodes = jsonNode.convertToMap()["_children"]!!
+        val result = mapWithArrayNodes.convertValue<Map<String, List<String>>>()
+        val add = result["add"] as List<String>
+        assertEquals(listOf("val6"), add)
     }
 
     @Test
