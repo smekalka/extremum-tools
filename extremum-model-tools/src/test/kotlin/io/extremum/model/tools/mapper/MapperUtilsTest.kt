@@ -21,8 +21,8 @@ import io.extremum.test.tools.StringUtils.assertEqual
 import io.extremum.test.tools.StringUtils.toDescriptor
 import io.extremum.test.tools.ToJsonFormatter.toJson
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -39,24 +39,7 @@ class MapperUtilsTest {
             field1 = field1Value,
             field2 = field2Value
         )
-        assertEquals(result, exp)
-    }
-
-    @Test
-    fun convertValue() {
-        val field1Value = "field1 value"
-        val field2Value = 20
-
-        val result = mapOf(
-            "field1" to field1Value,
-            "field2" to field2Value,
-        ).convertValue<TestModel>()
-
-        val exp = TestModel(
-            field1 = field1Value,
-            field2 = field2Value
-        )
-        assertEquals(result, exp)
+        assertEquals(exp, result)
     }
 
     private data class TestModel(
@@ -70,7 +53,7 @@ class MapperUtilsTest {
         val timepoint =
             """{"timestamp":"2022-11-21T10:23:33.901201Z","uuid":"26445fd0-3f09-46cb-954e-f9c1925f2894"}"""
                 .readValue<Timepoint>()
-        Assertions.assertNotNull(timepoint.timestamp)
+        assertNotNull(timepoint.timestamp)
     }
 
     @Test
@@ -112,7 +95,7 @@ class MapperUtilsTest {
         val deserialized = serialized
             .readValue<Compensation>()
         val deserializedProperties = deserialized.parameters.`object`.convertValue<CustomProperties>()
-        assertEquals(deserializedProperties, properties)
+        assertEquals(properties, deserializedProperties)
     }
 
     @Test
@@ -141,7 +124,7 @@ class MapperUtilsTest {
         // альтернатива:
         // val deserializedProperties = deserialized.parameters.`object`.convertValue<Change>()
         val deserializedParameters = deserialized.parameters.mapToObject<Change>()
-        assertEquals(deserializedParameters, parameters)
+        assertEquals(parameters, deserializedParameters)
     }
 
     @Test
@@ -181,7 +164,7 @@ class MapperUtilsTest {
         val deserialized = serialized
             .readValue<Account>()
         val deserializedParameters = deserialized.changes.toList().first().data.mapToObject<Data>()
-        assertEquals(deserializedParameters, change.data.`object`)
+        assertEquals(change.data.`object`, deserializedParameters)
     }
 
     @Test
@@ -203,7 +186,7 @@ class MapperUtilsTest {
         val deserialized = serialized
             .readValue<Compensation>()
         val deserializedProperties = deserialized.parameters.string
-        assertEquals(deserializedProperties, properties)
+        assertEquals(properties, deserializedProperties)
     }
 
     @Test
@@ -318,10 +301,18 @@ class MapperUtilsTest {
     }
 
     @Test
+    fun `String to map`() {
+        val result = """
+            {"1":"a", "2":3, "parameters": ["3", "2"]}
+            """.readValue<Map<String, Any?>>()
+        assertEquals(mapOf("1" to "a", "2" to 3, "parameters" to listOf("3", "2")), result)
+    }
+
+    @Test
     fun `toStringOrMultilingual string`() {
         val string = "text value"
         val resultString = StringOrObject<String>(string).toStringOrMultilingual()
-        assertEquals(resultString, StringOrMultilingual(string))
+        assertEquals(StringOrMultilingual(string), resultString)
 
         val map = mapOf(
             MultilingualLanguage.en to "en",
@@ -337,7 +328,7 @@ class MapperUtilsTest {
             )
         val resultNotLanguage = StringOrObject(mapNotLanguage).toStringOrMultilingual()
         @Suppress("UNCHECKED_CAST")
-        assertEquals(resultNotLanguage, StringOrMultilingual(mapNotLanguage as Map<MultilingualLanguage, String>))
+        assertEquals(StringOrMultilingual(mapNotLanguage as Map<MultilingualLanguage, String>), resultNotLanguage)
 
         assertThrows<IllegalStateException> {
             StringOrObject(2).toStringOrMultilingual()
@@ -353,6 +344,7 @@ class MapperUtilsTest {
         val result = Clazz(a = "1", b = 2).convertToMap()
         assertEquals(mapOf("a" to "1", "b" to 2), result)
     }
+
     @Test
     fun `convertToMap for map (int to Any)`() {
         val result = mapOf(1 to "a", 2 to 3).convertToMap()
