@@ -31,11 +31,11 @@ class StringOrObjectDeserializerTest {
         )
         val map = mapper.convertValue(result.value?.`object`, MutableMap::class.java)
         assertEquals(
-            map,
             mapOf(
                 "age" to 25,
                 "name" to "inx"
-            )
+            ),
+            map
         )
     }
 
@@ -46,7 +46,7 @@ class StringOrObjectDeserializerTest {
             ClassWithStringOrObject::class.java
         )
         val user: User = mapper.convertValue(result.value?.`object`, User::class.java)
-        assertEquals(user, User("inx", 25))
+        assertEquals(User("inx", 25), user)
     }
 
     @Test
@@ -60,7 +60,7 @@ class StringOrObjectDeserializerTest {
 
     private fun assertConversion(str: String, exp: StringOrObject<Any>) {
         val result = readValue(str, ClassWithStringOrObject::class.java)
-        assertEquals(result.value, exp)
+        assertEquals(exp, result.value)
     }
 
     private fun <T> readValue(str: String, valueClass: Class<T>): T {

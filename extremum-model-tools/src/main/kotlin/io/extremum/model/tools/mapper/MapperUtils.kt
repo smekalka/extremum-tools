@@ -4,12 +4,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.extremum.model.tools.mapper.MapperUtils.convertValue
 import io.extremum.sharedmodels.basic.GraphQlList
 import io.extremum.sharedmodels.basic.MultilingualLanguage
 import io.extremum.sharedmodels.basic.StringOrMultilingual
 import io.extremum.sharedmodels.basic.StringOrObject
 import org.apache.commons.lang3.SerializationUtils
 import java.io.Serializable
+import java.util.logging.Logger
 import kotlin.reflect.full.isSubclassOf
 
 object MapperUtils {
@@ -25,10 +27,55 @@ object MapperUtils {
         registerModule(module)
     }
 
-    inline fun <reified R> Any?.convertValue(): R = mapper.convertValue(this, R::class.java)
+    val logger: Logger = Logger.getLogger(this::class.qualifiedName)
 
-    fun Any?.convertValue(to: Class<*>): Any = mapper.convertValue(this, to)
+    /**
+     * Конвертация в заданный тип.
+     * Дополненный [com.fasterxml.jackson.databind.ObjectMapper.convertValue]
+     * и [com.fasterxml.jackson.databind.ObjectMapper.readValue]
+     */
+    fun Any.convertValue(to: Class<*>): Any =
+        when {
+            this::class.isSubclassOf(to.kotlin) -> this
+            this is String -> mapper.readValue(this, to)
+            else -> mapper.convertValue(this, to)
+        }
 
+    /**
+     * Аналог [convertValue].
+     * При исключении по конвертации возвращает null
+     */
+    fun Any?.convertValueSafe(to: Class<*>): Any? = try {
+        this?.convertValue(to)
+    } catch (e: Exception) {
+        logger.info("Can't convert $this\nto $to\n${e.message}")
+        null
+    }
+
+    /**
+     * Generic аналог [convertValue]
+     */
+    inline fun <reified T> Any.convertValue(): T =
+        when {
+            this::class.isSubclassOf(T::class) -> this as T
+            this is String -> mapper.readValue(this, T::class.java)
+            else -> mapper.convertValue(this, T::class.java) as T
+        }
+
+    /**
+     * Generic аналог [convertValueSafe]
+     */
+    inline fun <reified T> Any?.convertValueSafe(): T? = try {
+        this?.convertValue()
+    } catch (e: Exception) {
+        logger.info("Can't convert $this\nto ${T::class.java}\n${e.message}")
+        null
+    }
+
+    /**
+     * Из json строки в заданный тип.
+     * Прямой вызов [com.fasterxml.jackson.databind.ObjectMapper.readValue]
+     */
     inline fun <reified T> String.readValue(): T = mapper.readValue(this, T::class.java)
 
     /**
@@ -99,7 +146,7 @@ object MapperUtils {
 
         try {
             if (`object` is Map<*, *>) {
-                return StringOrMultilingual(`object` as Map<MultilingualLanguage, String>)
+                return StringOrMultilingual(`object`.convertValue<Map<MultilingualLanguage, String>>())
             }
         } catch (e: Exception) {
             // throw next
