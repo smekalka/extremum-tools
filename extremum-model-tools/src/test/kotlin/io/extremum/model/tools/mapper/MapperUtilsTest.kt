@@ -319,7 +319,7 @@ class MapperUtilsTest {
             MultilingualLanguage.de to "de",
         )
         val resultMap = StringOrObject(map).toStringOrMultilingual()
-        assertEquals(resultMap, StringOrMultilingual(map))
+        assertEquals(map.toString(), resultMap.multilingualContent.map.toString())
 
         val mapNotLanguage =
             mapOf(
@@ -327,8 +327,7 @@ class MapperUtilsTest {
                 2 to "de",
             )
         val resultNotLanguage = StringOrObject(mapNotLanguage).toStringOrMultilingual()
-        @Suppress("UNCHECKED_CAST")
-        assertEquals(StringOrMultilingual(mapNotLanguage as Map<MultilingualLanguage, String>), resultNotLanguage)
+        assertEquals(mapNotLanguage.toString(), resultNotLanguage.multilingualContent.map.toString())
 
         assertThrows<IllegalStateException> {
             StringOrObject(2).toStringOrMultilingual()
