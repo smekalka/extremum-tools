@@ -2,42 +2,100 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.7.10"
-    id("java")
-    id("maven-publish")
+    java
 }
 
-val artifactVersion = "0.0.4"
-val artifact = "extremum-model-tools"
+val artifactVersion = "3.0.0"
 val extremumGroup = "io.extremum"
-val releasesRepoUrl = "https://artifactory.extremum.monster/artifactory/extremum-releases/"
-val snapshotsRepoUrl = "https://artifactory.extremum.monster/artifactory/extremum-snapshots/"
+val releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 
 group = extremumGroup
 version = artifactVersion
 java.sourceCompatibility = JavaVersion.VERSION_17
 
-
 allprojects {
+    apply(plugin = "maven-publish")
+    apply(plugin = "signing")
+    apply(plugin = "java")
+
     repositories {
         mavenCentral()
         mavenLocal()
-        maven {
-            url = uri(snapshotsRepoUrl)
-            credentials {
-                username = System.getenv("ARTIFACTORY_USER")
-                password = System.getenv("ARTIFACTORY_PASSWORD")
+    }
+
+    java {
+        withJavadocJar()
+        withSourcesJar()
+    }
+
+    configure<PublishingExtension> {
+        if (project.path == ":") {
+            // Do not publish "root" project
+            return@configure
+        }
+        // Ignore projects without "artifact" property for publishing
+        val projectArtifact = project.findProperty("artifact")?.let { it as String }
+            ?: return@configure
+        publications {
+            create<MavenPublication>(project.name) {
+                artifactId = projectArtifact
+                version = rootProject.version.toString()
+                description = project.description
+                from(components["java"])
+
+                pom {
+                    project.property("artifact.name")?.let { name.set(it as String) }
+                    description.set(project.description)
+                    url.set("https://github.com/smekalka/extremum-tools")
+                    inceptionYear.set("2022")
+
+                    scm {
+                        url.set("https://github.com/smekalka/extremum-tools")
+                        connection.set("scm:https://github.com/smekalka/extremum-tools.git")
+                        developerConnection.set("scm:git://github.com/smekalka/extremum-tools.git")
+                    }
+
+                    licenses {
+                        license {
+                            name.set("Business Source License 1.1")
+                            url.set("https://github.com/smekalka/extremum-tools/blob/develop/LICENSE.md")
+                            distribution.set("repo")
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id.set("SherbakovaMA")
+                            name.set("Maria Sherbakova")
+                            email.set("m.sherbakova@smekalka.com")
+                        }
+                    }
+                }
             }
-            mavenContent {
-                snapshotsOnly()
+
+            repositories {
+                maven {
+                    name = "OSSRH"
+                    val isReleaseVersion = !(version as String).endsWith("-SNAPSHOT")
+                    url = uri(if (isReleaseVersion) releasesRepoUrl else snapshotsRepoUrl)
+                    credentials {
+                        username = System.getProperty("ossrhUsername")
+                        password = System.getProperty("ossrhPassword")
+                    }
+                }
             }
         }
+    }
 
-        maven {
-            url = uri(releasesRepoUrl)
-            credentials {
-                username = System.getenv("ARTIFACTORY_USER")
-                password = System.getenv("ARTIFACTORY_PASSWORD")
-            }
+    configure<SigningExtension> {
+        val publishing: PublishingExtension by project
+        sign(publishing.publications)
+    }
+
+    tasks.javadoc {
+        if (JavaVersion.current().isJava9Compatible) {
+            (options as StandardJavadocDocletOptions).addBooleanOption("html5", true)
         }
     }
 }
@@ -46,7 +104,6 @@ subprojects {
     version = artifactVersion
     group = extremumGroup
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "java-library")
 
     dependencies {
         implementation("io.extremum:extremum-shared-models:2.1.17-SNAPSHOT") {
@@ -66,19 +123,9 @@ subprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
     }
-
-    tasks.named<Jar>("jar") {
-        enabled = true
-    }
-
-    tasks.withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
-    }
 }
 
 project(":extremum-model-tools") {
-    apply(plugin = "maven-publish")
-
     dependencies {
         testImplementation(project(":extremum-test-tools"))
 
@@ -89,70 +136,18 @@ project(":extremum-model-tools") {
         testImplementation("org.assertj:assertj-core:3.8.0")
         testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.2")
     }
-
-    publishing {
-        publications {
-            create<MavenPublication>("maven") {
-                groupId = extremumGroup
-                artifactId = "extremum-model-tools"
-                version = artifactVersion
-
-                from(components["java"])
-            }
-
-            repositories {
-                maven {
-                    val isReleaseVersion = !(version as String).endsWith("-SNAPSHOT")
-                    url = uri(if (isReleaseVersion) releasesRepoUrl else snapshotsRepoUrl)
-                    credentials {
-                        username = System.getenv("ARTIFACTORY_USER")
-                        password = System.getenv("ARTIFACTORY_PASSWORD")
-                    }
-                }
-            }
-        }
-    }
 }
 
 project(":extremum-test-tools") {
-    apply(plugin = "maven-publish")
-
     dependencies {
         implementation(project(":extremum-model-tools"))
         implementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
         implementation("org.assertj:assertj-core:3.8.0")
         implementation("de.cronn:reflection-util:2.14.0")
     }
-
-    publishing {
-        publications {
-            create<MavenPublication>("maven") {
-                groupId = extremumGroup
-                artifactId = "extremum-test-tools"
-                version = artifactVersion
-
-                from(components["java"])
-            }
-
-            repositories {
-                maven {
-                    val isReleaseVersion = !(version as String).endsWith("-SNAPSHOT")
-                    url = uri(if (isReleaseVersion) releasesRepoUrl else snapshotsRepoUrl)
-                    credentials {
-                        username = System.getenv("ARTIFACTORY_USER")
-                        password = System.getenv("ARTIFACTORY_PASSWORD")
-                    }
-                }
-            }
-        }
-    }
 }
 
 tasks.wrapper {
-    gradleVersion = "7.5.1"
+    gradleVersion = "7.6"
     distributionType = Wrapper.DistributionType.ALL
-}
-
-tasks.named<Jar>("jar") {
-    enabled = false
 }
