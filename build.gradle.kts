@@ -106,7 +106,7 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
     dependencies {
-        implementation("io.extremum:extremum-shared-models:2.1.17-SNAPSHOT") {
+        implementation("io.extremum:extremum-shared-models:3.0.0") {
             exclude("io.extremum", "extremum-mongo-db-factory-reactive")
             exclude("io.extremum", "extremum-mongo-db-factory-sync")
         }
