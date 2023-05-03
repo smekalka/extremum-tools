@@ -35,11 +35,11 @@ object MapperUtils {
      * Дополненный [com.fasterxml.jackson.databind.ObjectMapper.convertValue]
      * и [com.fasterxml.jackson.databind.ObjectMapper.readValue]
      */
-    fun Any.convertValue(to: Class<*>): Any =
+    fun <T : Any> Any.convertValue(to: Class<T>): T =
         when {
-            this::class.java.genericSuperclass !is ParameterizedType && this::class.isSubclassOf(to.kotlin) -> this
+            this::class.java.genericSuperclass !is ParameterizedType && this::class.isSubclassOf(to.kotlin) -> this as T
             this is String -> mapper.readValue(this, to)
-            else -> mapper.convertValue(this, to)
+            else -> mapper.convertValue(this, to) as T
         }
 
     /**
@@ -76,6 +76,11 @@ object MapperUtils {
     /**
      * Из json строки в заданный тип.
      * Прямой вызов [com.fasterxml.jackson.databind.ObjectMapper.readValue]
+     */
+    fun <T> String.readValue(clazz: Class<T>): T = mapper.readValue(this, clazz)
+
+    /**
+     * Generic аналог [readValue]
      */
     inline fun <reified T> String.readValue(): T = mapper.readValue(this, T::class.java)
 
