@@ -46,12 +46,13 @@ object MapperUtils {
      * Аналог [convertValue].
      * При исключении по конвертации возвращает null
      */
-    fun Any?.convertValueSafe(to: Class<*>): Any? = try {
-        this?.convertValue(to)
-    } catch (e: Exception) {
-        logger.info("Can't convert $this\nto $to\n${e.message}")
-        null
-    }
+    fun <T : Any> Any?.convertValueSafe(to: Class<T>): T? =
+        try {
+            this?.convertValue(to)
+        } catch (e: Exception) {
+            logger.info("Can't convert $this\nto $to\n${e.message}")
+            null
+        }
 
     /**
      * Generic аналог [convertValue]

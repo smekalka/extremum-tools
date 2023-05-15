@@ -5,7 +5,7 @@ plugins {
     java
 }
 
-val artifactVersion = "3.2.0-rc.1"
+val artifactVersion = "3.2.0-rc.2"
 val extremumGroup = "io.extremum"
 val releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
@@ -128,6 +128,8 @@ subprojects {
 project(":extremum-model-tools") {
     dependencies {
         testImplementation(project(":extremum-test-tools"))
+
+        implementation("org.springframework:spring-webflux:6.0.8")
 
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.14.0")
