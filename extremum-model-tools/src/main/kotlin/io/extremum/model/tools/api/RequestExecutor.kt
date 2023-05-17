@@ -1,5 +1,6 @@
 package io.extremum.model.tools.api
 
+import io.extremum.model.tools.mapper.MapperUtils.convertValue
 import io.extremum.model.tools.mapper.MapperUtils.convertValueSafe
 import io.extremum.sharedmodels.dto.Pagination
 import io.extremum.sharedmodels.dto.Response
@@ -43,21 +44,42 @@ class RequestExecutor(
         request(T::class.java, requestObj)
 
     /**
+     * Запрос списка объектов типа [clazz] из ответа [Response.result] по [requestObj].
+     * Возвращается пустой список, если [Response.result] пуст или получен статус [HttpStatus.NOT_FOUND].
+     * Возбуждается исключение [ExtremumApiException],
+     * если формат [Response.result] не список или один из его объектов не совпадает с заданным типом [clazz].
+     */
+    suspend fun <T : Any> requestList(clazz: Class<T>, requestObj: WebClient.RequestHeadersSpec<*>): List<T> =
+        requestRaw(requestObj)
+            .getResultFromResponse(List::class.java)
+            ?.mapNotNull { valueInList -> valueInList?.convertValue(clazz) }
+            ?: listOf()
+
+    /**
+     * Generic аналог [requestList].
+     */
+    suspend inline fun <reified T : Any> requestList(requestObj: WebClient.RequestHeadersSpec<*>): List<T> =
+        requestList(T::class.java, requestObj)
+
+    /**
      * Запрос из ответа по [requestObj] объекта аналогично [request] и [Response.pagination].
+     * В результате получаем список объектов [clazz]
      */
     suspend fun <T : Any> requestWithPagination(
         clazz: Class<T>,
         requestObj: WebClient.RequestHeadersSpec<*>
-    ): Pair<T?, Pagination?> =
+    ): Pair<List<T>, Pagination> =
         requestRaw(requestObj)
             .let {
-                it.getResultFromResponse(clazz) to it.pagination
+                val convertedResultToList = it.getResultFromResponse(List::class.java)
+                    ?.mapNotNull { valueInList -> valueInList?.convertValue(clazz) }
+                (convertedResultToList ?: listOf()) to (it.pagination ?: Pagination(0, 0, 0, null, null))
             }
 
     /**
      * Generic аналог [requestWithPagination].
      */
-    suspend inline fun <reified T : Any> requestWithPagination(requestObj: WebClient.RequestHeadersSpec<*>): Pair<T?, Pagination?> =
+    suspend inline fun <reified T : Any> requestWithPagination(requestObj: WebClient.RequestHeadersSpec<*>): Pair<List<T>, Pagination> =
         requestWithPagination(T::class.java, requestObj)
 
     /**

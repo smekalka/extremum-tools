@@ -10,6 +10,8 @@ val extremumGroup = "io.extremum"
 val releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 
+val extremumSharedModelsVersion = "3.2.0-rc.1"
+
 group = extremumGroup
 version = artifactVersion
 java.sourceCompatibility = JavaVersion.VERSION_17
@@ -106,7 +108,7 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
     dependencies {
-        implementation("io.extremum:extremum-shared-models:3.0.0") {
+        implementation("io.extremum:extremum-shared-models:$extremumSharedModelsVersion") {
             exclude("io.extremum", "extremum-mongo-db-factory-reactive")
             exclude("io.extremum", "extremum-mongo-db-factory-sync")
         }
