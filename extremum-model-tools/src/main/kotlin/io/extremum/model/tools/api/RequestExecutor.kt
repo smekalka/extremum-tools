@@ -14,18 +14,10 @@ import java.util.logging.Logger
  * Функционал для выполнения запросов к api, которые возвращают [Response].
  * При получении статуса ответа или статуса в поле [Response.code] не [HttpStatus.OK] или [HttpStatus.NOT_FOUND]
  * возбуждается исключение [ExtremumApiException].
- * При заданном [xAppId] добавляется header [X_APP_ID_HEADER].
- * Заполненные [headers] также добавляются к запросам.
  */
-class RequestExecutor(
-    private val xAppId: String? = null,
-    private var headers: Map<String, String> = mapOf(),
-) {
-    private val logger: Logger = Logger.getLogger(this::class.java.name)
+object RequestExecutor {
 
-    fun updateHeaders(headers: Map<String, String>) {
-        this.headers = headers
-    }
+    private val logger: Logger = Logger.getLogger(this::class.java.name)
 
     /**
      * Запрос объекта типа [clazz] из ответа [Response.result] по [requestObj].
@@ -89,7 +81,6 @@ class RequestExecutor(
      */
     suspend fun requestRaw(requestObj: WebClient.RequestHeadersSpec<*>): Response =
         requestObj
-            .addHeaders()
             .awaitExchange { response ->
                 val statusCode = response.statusCode()
                 logger.info("Response code: $statusCode")
@@ -114,17 +105,6 @@ class RequestExecutor(
                 body
             }
 
-
-    private fun <T : WebClient.RequestHeadersSpec<T>> WebClient.RequestHeadersSpec<T>.addHeaders(): WebClient.RequestHeadersSpec<T> =
-        apply {
-            xAppId?.let {
-                this.header(X_APP_ID_HEADER, it)
-            }
-            headers.forEach { (name, value) ->
-                this.header(name, value)
-            }
-        }
-
     private fun <T : Any> Response.getResultFromResponse(clazz: Class<T>): T? {
         return this.result?.let { result ->
             result.convertValueSafe(clazz)
@@ -132,13 +112,9 @@ class RequestExecutor(
         }
     }
 
-    companion object {
-        const val X_APP_ID_HEADER = "x-app-id"
-
-        val NOT_FAILED_STATUSES: List<HttpStatus> = listOf(
-            HttpStatus.OK,
-            HttpStatus.NOT_FOUND,
-        )
-        val NOT_FAILED_STATUSES_VALUES: List<Int> = NOT_FAILED_STATUSES.map { it.value() }
-    }
+    val NOT_FAILED_STATUSES: List<HttpStatus> = listOf(
+        HttpStatus.OK,
+        HttpStatus.NOT_FOUND,
+    )
+    val NOT_FAILED_STATUSES_VALUES: List<Int> = NOT_FAILED_STATUSES.map { it.value() }
 }
