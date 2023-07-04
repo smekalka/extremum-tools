@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improve MapperUtils.convertValue 
 - Add MapperUtils.readValue for java class
 - Add request executor for requests with extremum Response model
+- Add java 8 compatibility
 
 ## [3.0.0] - 2023-03-24
 

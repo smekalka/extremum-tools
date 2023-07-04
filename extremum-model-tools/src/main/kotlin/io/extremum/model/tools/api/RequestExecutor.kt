@@ -91,7 +91,7 @@ object RequestExecutor {
                     if (body.alerts.isNotEmpty()) {
                         logger.warning("Alerts from response body: ${body.alerts}")
                         throw ExtremumApiException(
-                            code = statusCode,
+                            status = statusCode,
                             message = body.alerts.joinToString { it.code + ": " + it.message }
                         )
                     }
@@ -99,7 +99,7 @@ object RequestExecutor {
                 }
 
                 if (statusCode !in NOT_FAILED_STATUSES) {
-                    throw ExtremumApiException(code = statusCode, message = "request failed.")
+                    throw ExtremumApiException(status = statusCode, message = "request failed.")
                 }
 
                 body

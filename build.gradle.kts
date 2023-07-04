@@ -5,7 +5,7 @@ plugins {
     java
 }
 
-val artifactVersion = "3.2.0-rc.3"
+val artifactVersion = "3.2.0-rc.4"
 val extremumGroup = "io.extremum"
 val releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
 val snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
@@ -14,7 +14,7 @@ val extremumSharedModelsVersion = "3.2.0-rc.1"
 
 group = extremumGroup
 version = artifactVersion
-java.sourceCompatibility = JavaVersion.VERSION_17
+java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 allprojects {
     apply(plugin = "maven-publish")
@@ -118,7 +118,7 @@ subprojects {
     tasks.withType<KotlinCompile> {
         kotlinOptions {
             freeCompilerArgs = listOf("-Xjsr305=strict")
-            jvmTarget = "17"
+            jvmTarget = "1.8"
         }
     }
 
@@ -131,7 +131,7 @@ project(":extremum-model-tools") {
     dependencies {
         testImplementation(project(":extremum-test-tools"))
 
-        implementation("org.springframework:spring-webflux:6.0.8")
+        implementation("org.springframework:spring-webflux:5.3.28")
 
         implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.4")
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:2.14.0")
